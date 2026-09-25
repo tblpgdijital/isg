@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#002b49">
+  <meta name="description" content="TUI BLUE Palm Garden İSG Saha Gözlem Portalı">
+  <title>İSG Saha Gözlem Portalı</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#eef5f8;font-family:Arial,Helvetica,sans-serif}
+    #appFrame{display:block;width:100%;height:100dvh;border:0;background:#fff}
+    #loading{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:linear-gradient(180deg,#f8fbfd,#eef5f8);transition:.25s}
+    #loading.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .box{text-align:center;color:#173b50}
+    .logo{width:64px;height:64px;margin:0 auto 13px;border-radius:19px;display:grid;place-items:center;background:linear-gradient(145deg,#002b49,#087e98);color:#fff;font-size:27px;font-weight:800;box-shadow:0 14px 34px rgba(6,54,83,.18)}
+    .box b{display:block;font-size:20px}.box span{display:block;margin-top:6px;font-size:12px;color:#718692}
+    .bar{width:210px;height:7px;margin:18px auto 0;background:#dfeaf0;border-radius:999px;overflow:hidden}
+    .bar i{display:block;width:42%;height:100%;background:linear-gradient(90deg,#0878a7,#11a8a0,#0878a7);animation:m 1.2s ease-in-out infinite}
+    @keyframes m{from{transform:translateX(-120%)}to{transform:translateX(350%)}}
+  </style>
+</head>
+<body>
+  <div id="loading"><div class="box"><div class="logo">İSG</div><b>TUI BLUE Palm Garden</b><span>İSG Saha Gözlem Portalı yükleniyor...</span><div class="bar"><i></i></div></div></div>
+  <iframe id="appFrame" title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <script>
+    /* BURAYA MEVCUT ISG Apps Script /exec ADRESİNİZİ YAZIN.
+       Dağıtımı güncellerken mevcut deployment'ı "Yeni sürüm" olarak güncellerseniz URL değişmez. */
+    const ISG_APP_URL = 'https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
+
+    function makeTarget(){
+      const p=new URLSearchParams(window.location.search);
+      p.set('embedded','1');
+      return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString();
+    }
+    const frame=document.getElementById('appFrame'),loading=document.getElementById('loading');
+    frame.src=makeTarget();
+    frame.addEventListener('load',()=>setTimeout(()=>loading.classList.add('hide'),450));
+    window.addEventListener('message',e=>{
+      const d=e.data||{};
+      if(d.type==='TBPG_PORTAL_READY' || d.portal==='ISG')loading.classList.add('hide');
+    });
+    setTimeout(()=>loading.classList.add('hide'),12000);
+  </script>
+</body>
+</html>
