@@ -8,71 +8,99 @@
   <title>İSG Saha Gözlem Portalı</title>
   <style>
     *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif}
-    #appFrame{position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#fff;visibility:hidden}
-    #appFrame.ready{visibility:visible}
-    #instantLogin{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:18px;background:#f4f6f9}
-    #instantLogin.hide{display:none}
-    .login{width:min(430px,100%);background:#fff;border-radius:18px;padding:28px 22px 24px;box-shadow:0 10px 35px rgba(0,43,73,.12);border:1px solid #e5edf2}
-    .brand{border:1.5px solid #cfd9e3;border-radius:10px;padding:18px 16px 14px;margin-bottom:18px;background:#fff}
-    .logo{display:block;width:min(300px,100%);max-height:72px;object-fit:contain;margin:0 auto}
-    .title{display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:18px;font-weight:700;margin:0 0 10px;color:#002b49}
-    .title svg{width:18px;height:18px}
-    .login p{text-align:center;color:#6f7782;margin:0 0 16px;font-size:13px}
-    .loginInput{width:100%;min-height:54px;border:1.5px solid #004d80;border-radius:10px;padding:12px 14px;background:#fff;color:#002b49;text-align:center;font-weight:700;font-size:16px;outline:none;box-shadow:0 0 0 3px #e5edf2}
-    .loginInput::placeholder{color:#6f6f6f;opacity:1}
-    .loginInput:focus{border-color:#002b49;box-shadow:0 0 0 3px rgba(0,77,128,.12)}
-    .loginBtn{width:100%;min-height:49px;margin-top:15px;border:0;border-radius:10px;background:#002b49;color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
-    .loginBtn:disabled{opacity:.7;cursor:wait}
-    .loginBtn svg{width:19px;height:19px}
-    .error{display:none;margin:13px 0 0;padding:10px 12px;border-radius:9px;background:#fff0f0;color:#a51f1f;font-size:12px;text-align:center;font-weight:700}
-    .error.show{display:block}
-    @media(max-width:800px){
-      .login{padding:24px 15px;width:100%;max-width:400px}
-      .brand{padding:14px 12px 12px;margin-bottom:16px}
-      .logo{width:min(280px,100%);max-height:64px}
-      .title{font-size:17px}
+    html,body{
+      margin:0;width:100%;height:100%;overflow:hidden;
+      background:#f2f7fa;
+      font-family:Arial,Helvetica,sans-serif
+    }
+
+    #appFrame{
+      display:block;
+      width:100%;
+      height:100dvh;
+      border:0;
+      background:#fff
+    }
+
+    #loading{
+      position:fixed;
+      inset:0;
+      z-index:10;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(180deg,#f8fbfd,#eef5f8);
+      transition:opacity .25s ease,visibility .25s ease
+    }
+
+    #loading.hide{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none
+    }
+
+    .box{
+      text-align:center;
+      color:#173b50
+    }
+
+    .logo{
+      width:58px;
+      height:58px;
+      margin:0 auto 12px;
+      border-radius:17px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(145deg,#002b49,#0b6d9c);
+      color:#fff;
+      font-size:24px;
+      font-weight:800;
+      box-shadow:0 14px 34px rgba(0,43,73,.18)
+    }
+
+    .box b{
+      display:block;
+      font-size:20px
+    }
+
+    .box span{
+      display:block;
+      margin-top:6px;
+      font-size:12px;
+      color:#718692
+    }
+
+    .bar{
+      width:190px;
+      height:6px;
+      margin:18px auto 0;
+      background:#dfeaf0;
+      border-radius:999px;
+      overflow:hidden
+    }
+
+    .bar i{
+      display:block;
+      width:40%;
+      height:100%;
+      background:linear-gradient(90deg,#0b5f97,#20a6a0,#0b5f97);
+      animation:m 1.2s ease-in-out infinite
+    }
+
+    @keyframes m{
+      from{transform:translateX(-120%)}
+      to{transform:translateX(350%)}
     }
   </style>
 </head>
 <body>
-  <div id="instantLogin">
-    <form class="login" id="instantLoginForm">
-      <div class="brand">
-        <img class="logo" src="https://lh3.googleusercontent.com/d/1ZJjPfKE8uAmYkeDD-67gKwH3WQfJ_tXW" alt="TUI BLUE Palm Garden">
-      </div>
 
-      <div class="title">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          <rect x="5" y="10" width="14" height="10" rx="2.5" fill="currentColor"/>
-        </svg>
-        <span>İSG Portalı Yönetici Girişi</span>
-      </div>
-
-      <p>Lütfen Eğitim Portalı şifrenizi giriniz.</p>
-
-      <input
-        id="instantPassword"
-        class="loginInput"
-        type="password"
-        placeholder="ŞİFRENİZ"
-        autocomplete="current-password"
-        autocapitalize="characters"
-        spellcheck="false"
-        required
-      >
-
-      <button id="instantLoginBtn" class="loginBtn" type="submit">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M4 12h11M11 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>Giriş Yap</span>
-      </button>
-
-      <div id="loginError" class="error"></div>
-    </form>
+  <div id="loading">
+    <div class="box">
+      <div class="logo">İSG</div>
+      <b>İSG Saha Gözlem Portalı</b>
+      <span>Portal yükleniyor...</span>
+      <div class="bar"><i></i></div>
+    </div>
   </div>
 
   <iframe
@@ -83,101 +111,39 @@
   </iframe>
 
   <script>
-    const ISG_APP_URL='https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
-
-    const frame=document.getElementById('appFrame');
-    const shell=document.getElementById('instantLogin');
-    const form=document.getElementById('instantLoginForm');
-    const password=document.getElementById('instantPassword');
-    const btn=document.getElementById('instantLoginBtn');
-    const errBox=document.getElementById('loginError');
-
-    let frameReady=false;
-    let pendingPassword='';
+    const ISG_APP_URL =
+      'https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
 
     function makeTarget(){
       const p=new URLSearchParams(window.location.search);
       p.set('embedded','1');
-      return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString();
+      return ISG_APP_URL + '?' + p.toString();
     }
 
-    function showPortal(){
-      frame.classList.add('ready');
-      shell.classList.add('hide');
-    }
-
-    function showLogin(){
-      frame.classList.remove('ready');
-      shell.classList.remove('hide');
-      btn.disabled=false;
-      setTimeout(()=>password.focus(),50);
-    }
-
-    function sendPassword(pw){
-      frame.contentWindow.postMessage(
-        {type:'ISG_LOGIN_PASSWORD',password:pw},
-        'https://script.google.com'
-      );
-    }
+    const frame=document.getElementById('appFrame');
+    const loading=document.getElementById('loading');
 
     frame.src=makeTarget();
 
-    form.addEventListener('submit',function(e){
-      e.preventDefault();
+    // Düzeltici Faaliyet portalındaki mantık:
+    // GitHub giriş üretmez; gerçek Apps Script ekranını açar.
+    frame.addEventListener('load',()=>{
+      setTimeout(()=>loading.classList.add('hide'),450);
+    });
 
-      const pw=String(password.value||'').trim();
-      if(!pw) return;
-
-      errBox.classList.remove('show');
-      errBox.textContent='';
-      btn.disabled=true;
-
-      pendingPassword=pw.toLocaleUpperCase('tr-TR');
-
-      if(frameReady){
-        // Önce gerçek iframe'i göster: giriş doğrulama animasyonu burada görünür.
-        showPortal();
-        sendPassword(pendingPassword);
-        pendingPassword='';
+    window.addEventListener('message',event=>{
+      const data=event.data||{};
+      if(
+        data.type==='TBPG_LOGIN_READY' ||
+        data.type==='TBPG_PORTAL_READY' ||
+        data.portal==='ISG'
+      ){
+        loading.classList.add('hide');
       }
     });
 
-    password.addEventListener('input',function(){
-      this.value=this.value.toLocaleUpperCase('tr-TR');
-    });
-
-    window.addEventListener('message',function(e){
-      const d=e.data||{};
-
-      if(d.portal!=='ISG') return;
-
-      if(d.type==='TBPG_LOGIN_READY'){
-        frameReady=true;
-
-        if(pendingPassword){
-          showPortal();
-          sendPassword(pendingPassword);
-          pendingPassword='';
-        }
-        return;
-      }
-
-      if(d.type==='ISG_LOGIN_OK' || d.type==='TBPG_PORTAL_READY'){
-        showPortal();
-        btn.disabled=false;
-        return;
-      }
-
-      if(d.type==='ISG_LOGIN_ERROR'){
-        showLogin();
-        errBox.textContent=d.message||'Giriş başarısız.';
-        errBox.classList.add('show');
-        password.select();
-      }
-    });
-
-    // Sayfa açılır açılmaz gerçek input odaklanır.
-    setTimeout(()=>password.focus(),100);
+    // Google tarafı postMessage göndermese bile beyaz bekleme ekranında kalmasın.
+    setTimeout(()=>loading.classList.add('hide'),12000);
   </script>
 </body>
 </html>
