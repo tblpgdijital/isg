@@ -7,7 +7,8 @@
   <meta name="description" content="TUI BLUE Palm Garden İSG Saha Gözlem Portalı">
   <title>İSG Saha Gözlem Portalı</title>
   <style>
-    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif}
     #appFrame{position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#fff;visibility:hidden}
     #appFrame.ready{visibility:visible}
     #instantLogin{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:18px;background:#f4f6f9}
@@ -16,42 +17,167 @@
     .brand{border:1.5px solid #cfd9e3;border-radius:10px;padding:18px 16px 14px;margin-bottom:18px;background:#fff}
     .logo{display:block;width:min(300px,100%);max-height:72px;object-fit:contain;margin:0 auto}
     .title{display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:18px;font-weight:700;margin:0 0 10px;color:#002b49}
-    .title svg{width:18px;height:18px}.login p{text-align:center;color:#6f7782;margin:0 0 16px;font-size:13px}
-    .fakeInput{width:100%;min-height:54px;border:1.5px solid #004d80;border-radius:10px;padding:12px 14px;background:#fff;color:#6f6f6f;text-align:center;font-weight:700;font-size:16px;box-shadow:0 0 0 3px #e5edf2;display:flex;align-items:center;justify-content:center}
-    .fakeBtn{width:100%;min-height:49px;margin-top:15px;border:0;border-radius:10px;background:#002b49;color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:7px}.fakeBtn svg{width:19px;height:19px}
-    @media(max-width:800px){.login{padding:24px 15px;width:100%;max-width:400px}.brand{padding:14px 12px 12px;margin-bottom:16px}.logo{width:min(280px,100%);max-height:64px}.title{font-size:17px}}
+    .title svg{width:18px;height:18px}
+    .login p{text-align:center;color:#6f7782;margin:0 0 16px;font-size:13px}
+    .loginInput{width:100%;min-height:54px;border:1.5px solid #004d80;border-radius:10px;padding:12px 14px;background:#fff;color:#002b49;text-align:center;font-weight:700;font-size:16px;outline:none;box-shadow:0 0 0 3px #e5edf2}
+    .loginInput::placeholder{color:#6f6f6f;opacity:1}
+    .loginInput:focus{border-color:#002b49;box-shadow:0 0 0 3px rgba(0,77,128,.12)}
+    .loginBtn{width:100%;min-height:49px;margin-top:15px;border:0;border-radius:10px;background:#002b49;color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+    .loginBtn:disabled{opacity:.7;cursor:wait}
+    .loginBtn svg{width:19px;height:19px}
+    .error{display:none;margin:13px 0 0;padding:10px 12px;border-radius:9px;background:#fff0f0;color:#a51f1f;font-size:12px;text-align:center;font-weight:700}
+    .error.show{display:block}
+    @media(max-width:800px){
+      .login{padding:24px 15px;width:100%;max-width:400px}
+      .brand{padding:14px 12px 12px;margin-bottom:16px}
+      .logo{width:min(280px,100%);max-height:64px}
+      .title{font-size:17px}
+    }
   </style>
 </head>
 <body>
-  <!-- Apps Script daha yüklenmeden kullanıcı anında giriş ekranını görür. -->
   <div id="instantLogin">
-    <div class="login">
-      <div class="brand"><img class="logo" src="https://lh3.googleusercontent.com/d/1ZJjPfKE8uAmYkeDD-67gKwH3WQfJ_tXW" alt="TUI BLUE Palm Garden"></div>
-      <div class="title"><svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><rect x="5" y="10" width="14" height="10" rx="2.5" fill="currentColor"/></svg><span>İSG Portalı Yönetici Girişi</span></div>
+    <form class="login" id="instantLoginForm">
+      <div class="brand">
+        <img class="logo" src="https://lh3.googleusercontent.com/d/1ZJjPfKE8uAmYkeDD-67gKwH3WQfJ_tXW" alt="TUI BLUE Palm Garden">
+      </div>
+
+      <div class="title">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <rect x="5" y="10" width="14" height="10" rx="2.5" fill="currentColor"/>
+        </svg>
+        <span>İSG Portalı Yönetici Girişi</span>
+      </div>
+
       <p>Lütfen Eğitim Portalı şifrenizi giriniz.</p>
-      <div class="fakeInput">ŞİFRENİZ</div>
-      <div class="fakeBtn"><svg viewBox="0 0 24 24"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M4 12h11M11 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Giriş Yap</span></div>
-    </div>
+
+      <input
+        id="instantPassword"
+        class="loginInput"
+        type="password"
+        placeholder="ŞİFRENİZ"
+        autocomplete="current-password"
+        autocapitalize="characters"
+        spellcheck="false"
+        required
+      >
+
+      <button id="instantLoginBtn" class="loginBtn" type="submit">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M4 12h11M11 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Giriş Yap</span>
+      </button>
+
+      <div id="loginError" class="error"></div>
+    </form>
   </div>
 
-  <iframe id="appFrame" title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <iframe
+    id="appFrame"
+    title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı"
+    allow="camera; microphone; clipboard-read; clipboard-write; fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin">
+  </iframe>
+
   <script>
-    // Mevcut İSG Apps Script Web App /exec adresinizi buraya yazın.
     const ISG_APP_URL='https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
+
     const frame=document.getElementById('appFrame');
     const shell=document.getElementById('instantLogin');
-    function makeTarget(){const p=new URLSearchParams(window.location.search);p.set('embedded','1');return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString()}
-    function reveal(){
+    const form=document.getElementById('instantLoginForm');
+    const password=document.getElementById('instantPassword');
+    const btn=document.getElementById('instantLoginBtn');
+    const errBox=document.getElementById('loginError');
+
+    let frameReady=false;
+    let pendingPassword='';
+
+    function makeTarget(){
+      const p=new URLSearchParams(window.location.search);
+      p.set('embedded','1');
+      return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString();
+    }
+
+    function showPortal(){
       frame.classList.add('ready');
       shell.classList.add('hide');
     }
+
+    function showLogin(){
+      frame.classList.remove('ready');
+      shell.classList.remove('hide');
+      btn.disabled=false;
+      setTimeout(()=>password.focus(),50);
+    }
+
+    function sendPassword(pw){
+      frame.contentWindow.postMessage(
+        {type:'ISG_LOGIN_PASSWORD',password:pw},
+        'https://script.google.com'
+      );
+    }
+
     frame.src=makeTarget();
-    // Iframe'in yalnızca 'load' olması yeterli değil; gerçek giriş ekranı hazır olunca değiştir.
-    window.addEventListener('message',e=>{
-      const d=e.data||{};
-      if((d.portal==='ISG')&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY')) reveal();
+
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+
+      const pw=String(password.value||'').trim();
+      if(!pw) return;
+
+      errBox.classList.remove('show');
+      errBox.textContent='';
+      btn.disabled=true;
+
+      pendingPassword=pw.toLocaleUpperCase('tr-TR');
+
+      if(frameReady){
+        // Önce gerçek iframe'i göster: giriş doğrulama animasyonu burada görünür.
+        showPortal();
+        sendPassword(pendingPassword);
+        pendingPassword='';
+      }
     });
-    // Yüklenme sorunu olsa bile statik giriş görünümü kaybolmaz; kullanıcı beyaz ekran görmez.
+
+    password.addEventListener('input',function(){
+      this.value=this.value.toLocaleUpperCase('tr-TR');
+    });
+
+    window.addEventListener('message',function(e){
+      const d=e.data||{};
+
+      if(d.portal!=='ISG') return;
+
+      if(d.type==='TBPG_LOGIN_READY'){
+        frameReady=true;
+
+        if(pendingPassword){
+          showPortal();
+          sendPassword(pendingPassword);
+          pendingPassword='';
+        }
+        return;
+      }
+
+      if(d.type==='ISG_LOGIN_OK' || d.type==='TBPG_PORTAL_READY'){
+        showPortal();
+        btn.disabled=false;
+        return;
+      }
+
+      if(d.type==='ISG_LOGIN_ERROR'){
+        showLogin();
+        errBox.textContent=d.message||'Giriş başarısız.';
+        errBox.classList.add('show');
+        password.select();
+      }
+    });
+
+    // Sayfa açılır açılmaz gerçek input odaklanır.
+    setTimeout(()=>password.focus(),100);
   </script>
 </body>
 </html>
