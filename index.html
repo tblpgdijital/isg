@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#002b49">
   <meta name="description" content="TUI BLUE Palm Garden İSG Saha Gözlem Portalı">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="İSG Portalı">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <title>İSG Saha Gözlem Portalı</title>
   <style>
     *{box-sizing:border-box}
@@ -90,6 +97,21 @@
       from{transform:translateX(-120%)}
       to{transform:translateX(350%)}
     }
+  
+    #installPwa{
+      position:fixed;right:16px;bottom:16px;z-index:30;
+      display:none;align-items:center;gap:9px;border:0;border-radius:13px;
+      background:#002b49;color:#fff;padding:12px 15px;font-weight:700;
+      box-shadow:0 10px 26px rgba(0,43,73,.22);cursor:pointer
+    }
+    #installPwa.show{display:flex}
+    #offlineNotice{
+      position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+      z-index:40;display:none;background:#8a2a21;color:#fff;
+      padding:10px 14px;border-radius:11px;font-size:12px;font-weight:700
+    }
+    #offlineNotice.show{display:block}
+
   </style>
 </head>
 <body>
@@ -102,6 +124,9 @@
       <div class="bar"><i></i></div>
     </div>
   </div>
+
+  <button id="installPwa" type="button">＋ Uygulamayı Yükle</button>
+  <div id="offlineNotice">İnternet bağlantısı yok. Portal verileri için bağlantı gereklidir.</div>
 
   <iframe
     id="appFrame"
@@ -145,5 +170,45 @@
     // Google tarafı postMessage göndermese bile beyaz bekleme ekranında kalmasın.
     setTimeout(()=>loading.classList.add('hide'),12000);
   </script>
+
+  <script>
+    let deferredInstallPrompt=null;
+    const installBtn=document.getElementById('installPwa');
+    const offlineNotice=document.getElementById('offlineNotice');
+
+    window.addEventListener('beforeinstallprompt',e=>{
+      e.preventDefault();
+      deferredInstallPrompt=e;
+      installBtn.classList.add('show');
+    });
+
+    installBtn.addEventListener('click',async()=>{
+      if(!deferredInstallPrompt)return;
+      deferredInstallPrompt.prompt();
+      try{await deferredInstallPrompt.userChoice}catch(e){}
+      deferredInstallPrompt=null;
+      installBtn.classList.remove('show');
+    });
+
+    window.addEventListener('appinstalled',()=>{
+      deferredInstallPrompt=null;
+      installBtn.classList.remove('show');
+    });
+
+    function updateNetworkState(){
+      offlineNotice.classList.toggle('show',!navigator.onLine);
+    }
+    window.addEventListener('online',updateNetworkState);
+    window.addEventListener('offline',updateNetworkState);
+    updateNetworkState();
+
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('./service-worker.js',{scope:'./'})
+          .catch(()=>{});
+      });
+    }
+  </script>
+
 </body>
 </html>
