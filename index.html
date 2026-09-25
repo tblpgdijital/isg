@@ -41,7 +41,6 @@
     @keyframes slide{0%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
     @media(max-width:600px){.splashCard{padding:24px 18px}.orb{width:160px;height:160px}.figureCore{width:106px;height:106px}.figureCore img{width:82px;height:82px}.isgText{font-size:22px}}
   
-    /* Sessiz PWA / Ana Ekrana Ekle önerisi */
     #installNudge{position:fixed;z-index:40;right:16px;bottom:16px;width:min(360px,calc(100vw - 24px));display:none;align-items:center;gap:11px;padding:11px 12px;border:1px solid #d5e3ec;border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 14px 38px rgba(0,43,73,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#163b54}
     #installNudge.show{display:flex;animation:nudgeIn .25s ease-out}
     .installIcon{width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:#e7f3fa;color:#00689f;display:grid;place-items:center;font-size:20px}
@@ -89,7 +88,6 @@
   </div>
 
   <iframe id="appFrame" title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-
   <script>
     const ISG_APP_URL='https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
     const frame=document.getElementById('appFrame');
@@ -117,30 +115,23 @@
       revealed=true;
       frame.classList.add('ready');
       splash.classList.add('hide');
-      scheduleInstallNudge();
+      setTimeout(showInstallNudge,6500);
     }
 
     function isStandalone(){
-      return window.matchMedia('(display-mode: standalone)').matches ||
-             window.navigator.standalone===true;
+      return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
     }
+    function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)}
+    function isAndroid(){return /android/i.test(navigator.userAgent)}
 
-    function isIOS(){
-      return /iphone|ipad|ipod/i.test(navigator.userAgent);
-    }
-
-    function isAndroid(){
-      return /android/i.test(navigator.userAgent);
-    }
-
-    function installDismissedRecently(){
+    function dismissedRecently(){
       try{
         const t=Number(localStorage.getItem('tbpg_isg_install_dismissed')||0);
-        return t && (Date.now()-t)<7*24*60*60*1000;
+        return t && Date.now()-t<7*24*60*60*1000;
       }catch(e){return false}
     }
 
-    function hideInstallNudge(remember){
+    function hideInstall(remember){
       installNudge.classList.remove('show');
       if(remember){
         try{localStorage.setItem('tbpg_isg_install_dismissed',String(Date.now()))}catch(e){}
@@ -148,7 +139,7 @@
     }
 
     function showInstallNudge(){
-      if(isStandalone() || installDismissedRecently())return;
+      if(isStandalone()||dismissedRecently())return;
       if(deferredInstallPrompt){
         installText.textContent='Tek dokunuşla uygulama gibi yükleyebilirsin.';
         installAction.textContent='Yükle';
@@ -165,21 +156,10 @@
       installNudge.classList.add('show');
     }
 
-    function scheduleInstallNudge(){
-      if(isStandalone())return;
-      setTimeout(showInstallNudge,6500);
-    }
-
-    function showManualInstallHelp(){
-      let text='';
-      if(isIOS()){
-        text='Safari’de alt/üst araç çubuğundaki Paylaş simgesine dokun. Ardından “Ana Ekrana Ekle” seçeneğini seç ve Ekle’ye dokun.';
-      }else if(isAndroid()){
-        text='Chrome, Edge veya Samsung Internet menüsünü aç. “Ana ekrana ekle” ya da “Uygulamayı yükle” seçeneğini seç.';
-      }else{
-        text='Tarayıcı menüsünde “Uygulamayı yükle”, “Bu sayfayı uygulama olarak yükle”, “Kısayol oluştur” veya “Ana ekrana ekle” seçeneğini kullan. Seçenek adı tarayıcıya göre değişebilir.';
-      }
-      installHelpText.textContent=text;
+    function manualHelp(){
+      if(isIOS()) installHelpText.textContent='Safari’de Paylaş simgesine dokun, ardından “Ana Ekrana Ekle” seçeneğini seç.';
+      else if(isAndroid()) installHelpText.textContent='Chrome, Edge veya Samsung Internet menüsünü aç; “Ana ekrana ekle” ya da “Uygulamayı yükle” seçeneğini seç.';
+      else installHelpText.textContent='Tarayıcı menüsünde “Uygulamayı yükle”, “Kısayol oluştur” veya “Ana ekrana ekle” seçeneğini kullan.';
       installHelp.classList.add('show');
     }
 
@@ -191,7 +171,7 @@
 
     window.addEventListener('appinstalled',()=>{
       deferredInstallPrompt=null;
-      hideInstallNudge(false);
+      hideInstall(false);
     });
 
     installAction.addEventListener('click',async()=>{
@@ -199,47 +179,38 @@
         deferredInstallPrompt.prompt();
         try{await deferredInstallPrompt.userChoice}catch(e){}
         deferredInstallPrompt=null;
-        hideInstallNudge(true);
-      }else{
-        showManualInstallHelp();
-      }
+        hideInstall(true);
+      }else manualHelp();
     });
 
-    installClose.addEventListener('click',()=>hideInstallNudge(true));
+    installClose.addEventListener('click',()=>hideInstall(true));
     installHelpClose.addEventListener('click',()=>installHelp.classList.remove('show'));
     installHelp.addEventListener('click',e=>{if(e.target===installHelp)installHelp.classList.remove('show')});
 
     window.addEventListener('message',e=>{
       const d=e.data||{};
-      if(d.portal==='ISG'&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY')) reveal();
-
+      if(d.portal==='ISG'&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY'))reveal();
       if(d.portal==='ISG'&&d.type==='TBPG_REQUEST_EXIT'){
         allowExit=true;
         try{
-          if(history.length>1) history.back();
+          if(history.length>1)history.back();
           else location.href='about:blank';
-        }catch(err){
-          location.href='about:blank';
-        }
+        }catch(err){location.href='about:blank'}
       }
     });
 
-    /* Son sayfadan istemeden çıkış için tarayıcının kendi güvenlik uyarısı */
     window.addEventListener('beforeunload',e=>{
-      if(!revealed || allowExit)return;
+      if(!revealed||allowExit)return;
       e.preventDefault();
       e.returnValue='';
     });
 
-    frame.addEventListener('load',()=>{setTimeout(reveal,1500)});
+    frame.addEventListener('load',()=>setTimeout(reveal,1500));
     frame.src=makeTarget();
 
     if('serviceWorker' in navigator){
-      window.addEventListener('load',()=>{
-        navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
-      });
+      window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));
     }
   </script>
-
 </body>
 </html>
