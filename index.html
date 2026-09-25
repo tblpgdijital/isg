@@ -8,10 +8,10 @@
   <title>İSG Saha Gözlem Portalı</title>
   <style>
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif}
-    #appFrame{position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#fff;opacity:0;transition:opacity .12s ease}
-    #appFrame.ready{opacity:1}
-    #instantLogin{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:18px;background:#f4f6f9;transition:opacity .12s ease,visibility .12s ease}
-    #instantLogin.hide{opacity:0;visibility:hidden;pointer-events:none}
+    #appFrame{position:fixed;inset:0;width:100%;height:100dvh;border:0;background:#fff;visibility:hidden}
+    #appFrame.ready{visibility:visible}
+    #instantLogin{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:18px;background:#f4f6f9}
+    #instantLogin.hide{display:none}
     .login{width:min(430px,100%);background:#fff;border-radius:18px;padding:28px 22px 24px;box-shadow:0 10px 35px rgba(0,43,73,.12);border:1px solid #e5edf2}
     .brand{border:1.5px solid #cfd9e3;border-radius:10px;padding:18px 16px 14px;margin-bottom:18px;background:#fff}
     .logo{display:block;width:min(300px,100%);max-height:72px;object-fit:contain;margin:0 auto}
@@ -41,10 +41,16 @@
     const frame=document.getElementById('appFrame');
     const shell=document.getElementById('instantLogin');
     function makeTarget(){const p=new URLSearchParams(window.location.search);p.set('embedded','1');return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString()}
-    function reveal(){frame.classList.add('ready');shell.classList.add('hide')}
+    function reveal(){
+      frame.classList.add('ready');
+      shell.classList.add('hide');
+    }
     frame.src=makeTarget();
-    frame.addEventListener('load',()=>setTimeout(reveal,60));
-    window.addEventListener('message',e=>{const d=e.data||{};if((d.portal==='ISG')&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY'))reveal()});
+    // Iframe'in yalnızca 'load' olması yeterli değil; gerçek giriş ekranı hazır olunca değiştir.
+    window.addEventListener('message',e=>{
+      const d=e.data||{};
+      if((d.portal==='ISG')&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY')) reveal();
+    });
     // Yüklenme sorunu olsa bile statik giriş görünümü kaybolmaz; kullanıcı beyaz ekran görmez.
   </script>
 </body>
