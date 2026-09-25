@@ -37,7 +37,7 @@
   <iframe id="appFrame" title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
   <script>
     // Mevcut İSG Apps Script Web App /exec adresinizi buraya yazın.
-    const ISG_APP_URL='https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
+    const ISG_APP_URL='BURAYA_ISG_APPS_SCRIPT_EXEC_URL';
     const frame=document.getElementById('appFrame');
     const shell=document.getElementById('instantLogin');
     function makeTarget(){const p=new URLSearchParams(window.location.search);p.set('embedded','1');return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString()}
