@@ -1,22 +1,22 @@
 {
   "name": "TUI BLUE Palm Garden İSG Saha Gözlem Portalı",
-  "short_name": "İSG Portalı",
+  "short_name": "İSG Saha",
   "description": "TUI BLUE Palm Garden İSG Saha Gözlem Portalı",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f2f7fa",
+  "background_color": "#f4f7fa",
   "theme_color": "#002b49",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "./isg-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "./isg-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

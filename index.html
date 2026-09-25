@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#002b49">
   <meta name="description" content="TUI BLUE Palm Garden İSG Saha Gözlem Portalı">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="İSG Saha Portalı">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./isg-icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./isg-icon-192.png">
   <title>İSG Saha Gözlem Portalı</title>
   <style>
     *{box-sizing:border-box}
@@ -34,6 +40,21 @@
     @keyframes shine{0%,30%{transform:translateX(-90%)}65%,100%{transform:translateX(90%)}}
     @keyframes slide{0%{transform:translateX(-130%)}100%{transform:translateX(330%)}}
     @media(max-width:600px){.splashCard{padding:24px 18px}.orb{width:160px;height:160px}.figureCore{width:106px;height:106px}.figureCore img{width:82px;height:82px}.isgText{font-size:22px}}
+  
+    /* Sessiz PWA / Ana Ekrana Ekle önerisi */
+    #installNudge{position:fixed;z-index:40;right:16px;bottom:16px;width:min(360px,calc(100vw - 24px));display:none;align-items:center;gap:11px;padding:11px 12px;border:1px solid #d5e3ec;border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 14px 38px rgba(0,43,73,.18);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#163b54}
+    #installNudge.show{display:flex;animation:nudgeIn .25s ease-out}
+    .installIcon{width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:#e7f3fa;color:#00689f;display:grid;place-items:center;font-size:20px}
+    .installCopy{min-width:0;flex:1}.installCopy b{display:block;font-size:12px}.installCopy small{display:block;margin-top:2px;font-size:10px;line-height:1.35;color:#718493}
+    .installAction{border:0;border-radius:10px;background:#005f96;color:#fff;padding:9px 11px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+    .installClose{border:0;background:transparent;color:#78909c;font-size:18px;width:26px;height:26px;cursor:pointer}
+    #installHelp{position:fixed;inset:0;z-index:60;display:none;place-items:center;padding:16px;background:rgba(0,25,42,.62)}
+    #installHelp.show{display:grid}
+    .installHelpCard{width:min(430px,100%);background:#fff;border-radius:20px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);color:#163b54}
+    .installHelpCard h3{margin:0 0 10px}.installHelpCard p{font-size:13px;line-height:1.55;color:#536b7b}.installHelpCard button{width:100%;min-height:46px;border:0;border-radius:11px;background:#005f96;color:#fff;font-weight:800}
+    @keyframes nudgeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    @media(max-width:600px){#installNudge{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));width:auto}.installCopy small{font-size:9px}.installAction{padding:8px 9px}}
+
   </style>
 </head>
 <body>
@@ -49,17 +70,176 @@
       <div class="progress"><span></span></div>
     </div>
   </div>
+
+  <div id="installNudge" role="status" aria-live="polite">
+    <div class="installIcon">⌂</div>
+    <div class="installCopy">
+      <b>İSG Portalını cihazına ekle</b>
+      <small id="installText">Daha hızlı erişim için ana ekrana / uygulamalara ekleyebilirsin.</small>
+    </div>
+    <button id="installAction" class="installAction" type="button">Ekle</button>
+    <button id="installClose" class="installClose" type="button" aria-label="Kapat">×</button>
+  </div>
+  <div id="installHelp">
+    <div class="installHelpCard">
+      <h3>Ana Ekrana Ekle</h3>
+      <p id="installHelpText"></p>
+      <button id="installHelpClose" type="button">Tamam</button>
+    </div>
+  </div>
+
   <iframe id="appFrame" title="TUI BLUE Palm Garden İSG Saha Gözlem Portalı" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
   <script>
     const ISG_APP_URL='https://script.google.com/macros/s/AKfycbzQxTO7uzoIeQhbOAr4cKJ3Sb9mhnOVkzRkWmCY9_BEJQCKe7cQQ9jwVFeqF-tSmjs0AQ/exec';
     const frame=document.getElementById('appFrame');
     const splash=document.getElementById('entrySplash');
+    const installNudge=document.getElementById('installNudge');
+    const installText=document.getElementById('installText');
+    const installAction=document.getElementById('installAction');
+    const installClose=document.getElementById('installClose');
+    const installHelp=document.getElementById('installHelp');
+    const installHelpText=document.getElementById('installHelpText');
+    const installHelpClose=document.getElementById('installHelpClose');
+
     let revealed=false;
-    function makeTarget(){const p=new URLSearchParams(location.search);p.set('embedded','1');return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString()}
-    function reveal(){if(revealed)return;revealed=true;frame.classList.add('ready');splash.classList.add('hide')}
-    window.addEventListener('message',e=>{const d=e.data||{};if(d.portal==='ISG'&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY'))reveal()});
+    let allowExit=false;
+    let deferredInstallPrompt=null;
+
+    function makeTarget(){
+      const p=new URLSearchParams(location.search);
+      p.set('embedded','1');
+      return ISG_APP_URL+(ISG_APP_URL.includes('?')?'&':'?')+p.toString();
+    }
+
+    function reveal(){
+      if(revealed)return;
+      revealed=true;
+      frame.classList.add('ready');
+      splash.classList.add('hide');
+      scheduleInstallNudge();
+    }
+
+    function isStandalone(){
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone===true;
+    }
+
+    function isIOS(){
+      return /iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+
+    function isAndroid(){
+      return /android/i.test(navigator.userAgent);
+    }
+
+    function installDismissedRecently(){
+      try{
+        const t=Number(localStorage.getItem('tbpg_isg_install_dismissed')||0);
+        return t && (Date.now()-t)<7*24*60*60*1000;
+      }catch(e){return false}
+    }
+
+    function hideInstallNudge(remember){
+      installNudge.classList.remove('show');
+      if(remember){
+        try{localStorage.setItem('tbpg_isg_install_dismissed',String(Date.now()))}catch(e){}
+      }
+    }
+
+    function showInstallNudge(){
+      if(isStandalone() || installDismissedRecently())return;
+      if(deferredInstallPrompt){
+        installText.textContent='Tek dokunuşla uygulama gibi yükleyebilirsin.';
+        installAction.textContent='Yükle';
+      }else if(isIOS()){
+        installText.textContent='Safari Paylaş menüsünden “Ana Ekrana Ekle” seçeneğini kullan.';
+        installAction.textContent='Nasıl?';
+      }else if(isAndroid()){
+        installText.textContent='Tarayıcı menüsünden “Ana ekrana ekle / Uygulamayı yükle” seçeneğini kullan.';
+        installAction.textContent='Ekle';
+      }else{
+        installText.textContent='Destekleyen tarayıcılarda uygulama olarak, diğerlerinde kısayol olarak ekleyebilirsin.';
+        installAction.textContent='Ekle';
+      }
+      installNudge.classList.add('show');
+    }
+
+    function scheduleInstallNudge(){
+      if(isStandalone())return;
+      setTimeout(showInstallNudge,6500);
+    }
+
+    function showManualInstallHelp(){
+      let text='';
+      if(isIOS()){
+        text='Safari’de alt/üst araç çubuğundaki Paylaş simgesine dokun. Ardından “Ana Ekrana Ekle” seçeneğini seç ve Ekle’ye dokun.';
+      }else if(isAndroid()){
+        text='Chrome, Edge veya Samsung Internet menüsünü aç. “Ana ekrana ekle” ya da “Uygulamayı yükle” seçeneğini seç.';
+      }else{
+        text='Tarayıcı menüsünde “Uygulamayı yükle”, “Bu sayfayı uygulama olarak yükle”, “Kısayol oluştur” veya “Ana ekrana ekle” seçeneğini kullan. Seçenek adı tarayıcıya göre değişebilir.';
+      }
+      installHelpText.textContent=text;
+      installHelp.classList.add('show');
+    }
+
+    window.addEventListener('beforeinstallprompt',e=>{
+      e.preventDefault();
+      deferredInstallPrompt=e;
+      if(revealed)showInstallNudge();
+    });
+
+    window.addEventListener('appinstalled',()=>{
+      deferredInstallPrompt=null;
+      hideInstallNudge(false);
+    });
+
+    installAction.addEventListener('click',async()=>{
+      if(deferredInstallPrompt){
+        deferredInstallPrompt.prompt();
+        try{await deferredInstallPrompt.userChoice}catch(e){}
+        deferredInstallPrompt=null;
+        hideInstallNudge(true);
+      }else{
+        showManualInstallHelp();
+      }
+    });
+
+    installClose.addEventListener('click',()=>hideInstallNudge(true));
+    installHelpClose.addEventListener('click',()=>installHelp.classList.remove('show'));
+    installHelp.addEventListener('click',e=>{if(e.target===installHelp)installHelp.classList.remove('show')});
+
+    window.addEventListener('message',e=>{
+      const d=e.data||{};
+      if(d.portal==='ISG'&&(d.type==='TBPG_LOGIN_READY'||d.type==='TBPG_PORTAL_READY')) reveal();
+
+      if(d.portal==='ISG'&&d.type==='TBPG_REQUEST_EXIT'){
+        allowExit=true;
+        try{
+          if(history.length>1) history.back();
+          else location.href='about:blank';
+        }catch(err){
+          location.href='about:blank';
+        }
+      }
+    });
+
+    /* Son sayfadan istemeden çıkış için tarayıcının kendi güvenlik uyarısı */
+    window.addEventListener('beforeunload',e=>{
+      if(!revealed || allowExit)return;
+      e.preventDefault();
+      e.returnValue='';
+    });
+
     frame.addEventListener('load',()=>{setTimeout(reveal,1500)});
     frame.src=makeTarget();
+
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+      });
+    }
   </script>
+
 </body>
 </html>
